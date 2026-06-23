@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Conversão · GestãoClick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ─── TOKENS ─── */
+  :root {
+    --gc-blue:       #1565C0;
+    --gc-blue-dark:  #0D4A8C;
+    --gc-blue-deep:  #082F5C;
+    --gc-blue-light: #E8F1FB;
+    --gc-blue-mid:   #A9CCEF;
+    --gc-red:        #E0263B;
+    --gc-red-dark:   #B81C2E;
+    --gc-red-light:  #FBEAEC;
+
+    --slate-900: #18222C;
+    --slate-700: #374959;
+    --slate-600: #4E6070;
+    --slate-400: #5A6E80;
+    --slate-300: #C5D3DB;
+    --slate-200: #DFE8ED;
+    --slate-100: #EFF3F7;
+    --slate-50:  #F6F8FB;
+
+    --amber-500: #D97706;
+    --amber-100: #FEF3C7;
+    --white:     #FFFFFF;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 4px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 14px rgba(0,0,0,.09), 0 2px 4px rgba(0,0,0,.05);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--slate-50);
+    color: var(--slate-900);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  .app-header {
+    background: var(--gc-blue-dark);
+    color: white;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 54px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.22);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo-wrap {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: inherit;
+  }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: rgba(255,255,255,.12);
+    border: 1.5px solid rgba(255,255,255,.2);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-icon svg { display: block; }
+  .logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .logo-name {
+    font-size: 14px; font-weight: 700; letter-spacing: -.3px; line-height: 1;
+  }
+  .logo-sub { font-size: 11px; opacity: .55; font-weight: 400; letter-spacing: .1px; }
+
+  .header-divider {
+    width: 1px; height: 20px; background: rgba(255,255,255,.18); margin: 0 4px;
+  }
+  .header-tool {
+    font-size: 13px; font-weight: 500; opacity: .85;
+  }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-size: 10px; font-weight: 600; letter-spacing: .4px;
+    text-transform: uppercase; opacity: .75;
+  }
+
+  /* ─── TABS ─── */
+  .tabs-bar {
+    background: var(--white);
+    border-bottom: 1.5px solid var(--slate-200);
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+  }
+  .tab-btn {
+    padding: 13px 18px 11px;
+    font-size: 13px; font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--slate-600);
+    border: none; background: none; cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--gc-blue-dark); }
+  .tab-btn.active {
+    color: var(--gc-blue-dark);
+    border-bottom-color: var(--gc-blue);
+    font-weight: 600;
+  }
+
+  /* ─── MAIN ─── */
+  .main { padding: 22px; max-width: 1280px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1.5px solid var(--slate-200);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 20px 13px;
+    border-bottom: 1.5px solid var(--slate-100);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    background: var(--slate-50);
+  }
+  .card-title {
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .7px; color: var(--slate-600);
+  }
+
+  /* ─── RESULT STRIP ─── */
+  .result-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--slate-200);
+    border-top: 1.5px solid var(--slate-200);
+  }
+  .result-cell {
+    background: var(--white);
+    padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .result-cell.highlight    { background: var(--gc-blue-light); }
+  .result-cell.highlight-warn { background: var(--amber-100); }
+  .result-label {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .55px; color: var(--slate-400);
+  }
+  .result-value {
+    font-size: 22px; font-weight: 700; letter-spacing: -.5px;
+    color: var(--slate-900); font-variant-numeric: tabular-nums;
+  }
+  .result-value.green { color: var(--gc-blue-dark); }
+  .result-value.amber { color: var(--amber-500); }
+
+  /* ─── TABLES ─── */
+  .items-table, .prop-table { width: 100%; border-collapse: collapse; }
+  .items-table thead th, .prop-table thead th {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .4px; color: var(--slate-400);
+    padding: 10px 10px;
+    text-align: left; white-space: nowrap;
+    background: var(--slate-50);
+    border-bottom: 1.5px solid var(--slate-200);
+  }
+  .items-table thead th.num,
+  .prop-table thead th.num { text-align: right; }
+
+  .items-table tbody tr,
+  .prop-table tbody tr {
+    border-bottom: 1px solid var(--slate-100);
+    transition: background .1s;
+  }
+  .items-table tbody tr:hover,
+  .prop-table tbody tr:hover { background: var(--gc-blue-light); }
+
+  .items-table td, .prop-table td { padding: 7px 10px; vertical-align: middle; }
+  .items-table td.num, .prop-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .items-table td.calc, .prop-table td.calc {
+    text-align: right; font-variant-numeric: tabular-nums;
+    color: var(--slate-600); font-size: 13px;
+  }
+  .items-table td.saldo-cell, .prop-table td.total-cell {
+    text-align: right; font-variant-numeric: tabular-nums;
+    font-weight: 700; color: var(--gc-blue-dark);
+  }
+  .row-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--slate-100); color: var(--slate-400);
+    font-size: 10px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ─── INPUTS ─── */
+  .field {
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    font-size: 13px; font-family: 'Inter', sans-serif; color: var(--slate-900);
+    background: var(--white);
+    width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--gc-blue);
+    box-shadow: 0 0 0 3px rgba(26,173,107,.13);
+  }
+  .field::placeholder { color: var(--slate-400); }
+  .field.date-field { min-width: 120px; }
+  .date-wrap { position: relative; display: inline-block; }
+  .date-wrap .paste-hint {
+    display: none;
+    position: absolute; top: -22px; left: 0;
+    font-size: 10px; color: var(--gc-blue-dark); font-weight: 500;
+    white-space: nowrap; pointer-events: none;
+  }
+  .date-wrap.paste-ok .paste-hint { display: block; }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: .4; cursor: pointer;
+  }
+
+  /* ─── CONFIG ROW ─── */
+  .config-row {
+    display: flex; gap: 16px; align-items: flex-end;
+    padding: 16px 20px;
+    border-top: 1.5px solid var(--slate-100);
+    background: var(--slate-50);
+    flex-wrap: wrap;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label {
+    font-size: 10.5px; font-weight: 600; color: var(--slate-400);
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+
+  /* ─── BTNS ─── */
+  .btn {
+    padding: 7px 14px; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
+    cursor: pointer; border: 1.5px solid transparent;
+    transition: all .15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--gc-red); color: white;
+    border-color: var(--gc-red);
+  }
+  .btn-primary:hover { background: var(--gc-red-dark); border-color: var(--gc-red-dark); }
+  .btn-ghost {
+    background: none; border-color: var(--slate-200); color: var(--slate-600);
+  }
+  .btn-ghost:hover { background: var(--slate-100); border-color: var(--slate-300); }
+  .btn-danger {
+    background: none; border-color: transparent; color: var(--gc-red);
+    padding: 4px 6px;
+  }
+  .btn-danger:hover { background: var(--gc-red-light); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ─── BADGE ─── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-green { background: var(--gc-blue-light); color: var(--gc-blue-dark); }
+  .badge-amber { background: var(--amber-100); color: var(--amber-500); }
+
+  /* ─── INFO CHIP ─── */
+  .info-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--slate-400); cursor: default;
+    position: relative;
+  }
+  .info-chip:hover .tooltip { opacity: 1; pointer-events: auto; }
+  .tooltip {
+    position: absolute; bottom: calc(100% + 6px); left: 0;
+    min-width: 220px; max-width: 280px;
+    background: var(--slate-900); color: white;
+    font-size: 11px; line-height: 1.5; padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+    z-index: 999; white-space: normal;
+  }
+  .tooltip::after {
+    content: ''; position: absolute; top: 100%; left: 12px;
+    border: 5px solid transparent; border-top-color: var(--slate-900);
+  }
+
+  /* ─── SCROLLABLE TABLE ─── */
+  .table-wrap { overflow-x: auto; }
+
+  /* ─── TOAST ─── */
+  #copy-toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--slate-900); color: white;
+    padding: 10px 16px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .2s, transform .2s;
+    pointer-events: none; z-index: 9999;
+  }
+  #copy-toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ─── HOW TO USE ─── */
+  .how-to {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--gc-blue-light);
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--gc-blue-mid);
+  }
+  .how-to-title {
+    font-size: 11px; font-weight: 700; color: var(--gc-blue-dark);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .how-to-body { font-size: 12px; color: var(--slate-600); line-height: 1.7; }
+
+  /* ─── MINI CALCULATOR ─── */
+  .calc-mini-wrap { margin-top: 20px; }
+  .calc-mini {
+    max-width: 280px;
+  }
+  .calc-display-row {
+    padding: 14px 16px 10px;
+  }
+  .calc-display {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: right;
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--slate-900);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.5px;
+    cursor: text;
+    border-radius: var(--radius-sm);
+  }
+  .calc-display:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(21,101,192,.18);
+    background: var(--gc-blue-light);
+  }
+  .calc-mini-hint {
+    font-size: 10.5px; color: var(--slate-400); font-weight: 500;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .calc-key.kbd-active { background: var(--gc-blue-light) !important; }
+  .calc-expr {
+    text-align: right;
+    font-size: 11px;
+    color: var(--slate-400);
+    min-height: 14px;
+    padding-right: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--slate-200);
+    border-top: 1.5px solid var(--slate-200);
+  }
+  .calc-key {
+    background: var(--white);
+    border: none;
+    padding: 14px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--slate-700);
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .calc-key:hover { background: var(--slate-50); }
+  .calc-key:active { background: var(--slate-100); }
+  .calc-key.op { color: var(--gc-blue-dark); }
+  .calc-key.clear { color: var(--gc-red); }
+  .calc-key.equals {
+    background: var(--gc-blue);
+    color: white;
+    font-weight: 700;
+  }
+  .calc-key.equals:hover { background: var(--gc-blue-dark); }
+  .calc-key.zero { grid-column: span 2; }
+
+  /* ─── HISTORY TAB ─── */
+  .history-empty {
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--slate-400);
+  }
+  .history-empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .history-empty-text { font-size: 14px; font-weight: 500; }
+  .history-empty-sub { font-size: 12px; margin-top: 4px; }
+
+  .history-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .hist-card {
+    background: var(--white);
+    border: 1.5px solid var(--slate-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: border-color .15s;
+  }
+  .hist-card:hover { border-color: var(--gc-blue-mid); }
+
+  .hist-card-header {
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--slate-50);
+    border-bottom: 1.5px solid var(--slate-100);
+  }
+  .hist-type-badge {
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 10px; font-weight: 700; letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+  .hist-type-conv { background: var(--gc-blue-light); color: var(--gc-blue-dark); }
+  .hist-type-prop { background: var(--gc-red-light); color: var(--gc-red-dark); }
+  .hist-type-duas { background: var(--amber-100); color: var(--amber-500); }
+
+  /* ─── DUAS FORMAS DE PAGAMENTO ─── */
+  .duas-table { width: 100%; border-collapse: collapse; }
+  .duas-table thead th {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .4px; color: var(--slate-400);
+    padding: 10px 10px;
+    text-align: left; white-space: nowrap;
+    background: var(--slate-50);
+    border-bottom: 1.5px solid var(--slate-200);
+  }
+  .duas-table thead th.num { text-align: right; }
+  .duas-table tbody tr { border-bottom: 1px solid var(--slate-100); transition: background .1s; }
+  .duas-table tbody tr:hover { background: var(--gc-blue-light); }
+  .duas-table td { padding: 7px 10px; vertical-align: middle; }
+  .duas-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .duas-table td.calc {
+    text-align: right; font-variant-numeric: tabular-nums;
+    color: var(--slate-600); font-size: 12px; line-height: 1.5;
+  }
+  .duas-table td.calc .calc-sub { color: var(--slate-400); font-size: 10.5px; }
+  .duas-table td.total-cell {
+    text-align: right; font-variant-numeric: tabular-nums;
+    font-weight: 700; color: var(--gc-blue-dark);
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 10.5px; font-weight: 700; white-space: nowrap;
+  }
+  .status-ok   { background: var(--gc-blue-light); color: var(--gc-blue-dark); }
+  .status-warn { background: var(--amber-100); color: var(--amber-500); }
+  .status-na   { background: var(--slate-100); color: var(--slate-400); }
+
+  .hist-label { font-size: 13px; font-weight: 600; flex: 1; }
+  .hist-date  { font-size: 11px; color: var(--slate-400); }
+  .hist-actions { display: flex; gap: 6px; }
+
+  .hist-card-body {
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .hist-metric { display: flex; flex-direction: column; gap: 2px; }
+  .hist-metric-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .4px; color: var(--slate-400);
+  }
+  .hist-metric-value {
+    font-size: 16px; font-weight: 700;
+    color: var(--slate-900); font-variant-numeric: tabular-nums;
+  }
+  .hist-metric-value.green { color: var(--gc-blue-dark); }
+
+  /* ─── HISTORY TOP BAR ─── */
+  .history-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .history-count {
+    font-size: 12px; color: var(--slate-400); font-weight: 500;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 700px) {
+    .main { padding: 12px; }
+    .config-row { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <!-- GC checkmark logo -->
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 2C5.58 2 2 5.58 2 10C2 14.42 5.58 18 10 18C14.42 18 18 14.42 18 10C18 5.58 14.42 2 10 2Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+        <path d="M6.5 10L8.8 12.5L13.5 7.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-name">GestãoClick</div>
+      <div class="logo-sub">gestaoclick.com.br</div>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-tool">Calculadora de Conversão</div>
+  <div class="header-badge">Uso interno</div>
+</header>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('conv', this)">🔄 Cálculo de Conversão</button>
+  <button class="tab-btn" onclick="switchTab('prop', this)">📐 Valor Proporcional</button>
+  <button class="tab-btn" onclick="switchTab('duas', this)">💳 Duas Formas de Pagamento</button>
+  <button class="tab-btn" onclick="switchTab('hist', this)" id="hist-tab-btn">📁 Histórico <span id="hist-count-badge" style="display:none;margin-left:4px;background:var(--gc-blue);color:white;border-radius:99px;padding:1px 6px;font-size:10px;"></span></button>
+</div>
+
+<div class="main">
+
+  <!-- ══════════════════════════════════════ -->
+  <!--  TAB 1: CÁLCULO DE CONVERSÃO          -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tab-conv" class="tab-panel active">
+
+    <!-- RESULT STRIP -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="result-strip" id="conv-results">
+        <div class="result-cell highlight">
+          <span class="result-label">Saldo Total</span>
+          <span class="result-value green" id="r-saldo-total">R$ 0,00</span>
+        </div>
+        <div class="result-cell">
+          <span class="result-label">Valor dia (novo plano)</span>
+          <span class="result-value" id="r-valor-dia-novo">—</span>
+        </div>
+        <div class="result-cell">
+          <span class="result-label">Dias de crédito</span>
+          <span class="result-value" id="r-dias-credito">—</span>
+        </div>
+        <div class="result-cell highlight">
+          <span class="result-label">Nova data de vencimento</span>
+          <span class="result-value green" id="r-nova-data">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA DE ITENS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Itens da conversão</span>
+        <button class="btn btn-ghost" onclick="addConvRow()">+ Adicionar item</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th>Descrição</th>
+              <th class="num">Valor pago</th>
+              <th class="num">Cadastrado em</th>
+              <th class="num">Vencimento</th>
+              <th class="num">Data alteração</th>
+              <th class="num">Dias contrat.</th>
+              <th class="num">Dias usados</th>
+              <th class="num">Valor/dia</th>
+              <th class="num">Valor usado</th>
+              <th class="num">Saldo a usar</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="conv-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- CONFIG: NOVO PLANO -->
+      <div class="config-row">
+        <div class="field-group">
+          <label class="field-label">
+            Valor do novo plano/mês
+            <span class="info-chip">ⓘ
+              <span class="tooltip">Valor por mês do plano que ficará vigente. Em mudança de plano, use o valor negociado. Em desativação de recurso, subtraia o recurso do valor do plano.</span>
+            </span>
+          </label>
+          <input type="number" id="novo-plano-valor" class="field" style="width:150px" placeholder="0,00" step="0.01" oninput="recalcConv()" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">
+            Conversão válida a partir de
+            <span class="info-chip">ⓘ
+              <span class="tooltip">Recurso → data de vencimento do plano vigente. Upgrade/downgrade → vencimento do novo plano. Transferência → data de alteração.</span>
+            </span>
+          </label>
+          <input type="date" id="conv-valida" class="field date-field" oninput="recalcConv()" />
+        </div>
+        <div style="flex:1; min-width:200px">
+          <div class="field-label" style="margin-bottom:5px">Situação</div>
+          <div id="conv-situacao" class="badge badge-amber">Preencha os campos acima</div>
+        </div>
+        <div style="margin-left:auto">
+          <button id="conv-save-btn" class="btn btn-primary" onclick="saveToHistory('conv')" disabled>💾 Salvar no histórico</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc-mini-wrap">
+      <div class="card calc-mini">
+        <div class="card-header">
+          <span class="card-title">🧮 Calculadora rápida</span>
+          <span class="calc-mini-hint">⌨️ teclado habilitado</span>
+        </div>
+        <div class="calc-display-row">
+          <div class="calc-expr" id="calc-expr-conv">&nbsp;</div>
+          <input class="calc-display" id="calc-display-conv" inputmode="decimal" title="Clique aqui e digite no teclado do computador" readonly value="0" onkeydown="calcKeyDown(event,'conv')">
+        </div>
+        <div class="calc-grid">
+          <button class="calc-key clear" onclick="calcClear('conv')">C</button>
+          <button class="calc-key clear" onclick="calcBackspace('conv')">⌫</button>
+          <button class="calc-key op" onclick="calcInput('conv','%')">%</button>
+          <button class="calc-key op" onclick="calcInput('conv','/')">÷</button>
+
+          <button class="calc-key" onclick="calcInput('conv','7')">7</button>
+          <button class="calc-key" onclick="calcInput('conv','8')">8</button>
+          <button class="calc-key" onclick="calcInput('conv','9')">9</button>
+          <button class="calc-key op" onclick="calcInput('conv','*')">×</button>
+
+          <button class="calc-key" onclick="calcInput('conv','4')">4</button>
+          <button class="calc-key" onclick="calcInput('conv','5')">5</button>
+          <button class="calc-key" onclick="calcInput('conv','6')">6</button>
+          <button class="calc-key op" onclick="calcInput('conv','-')">−</button>
+
+          <button class="calc-key" onclick="calcInput('conv','1')">1</button>
+          <button class="calc-key" onclick="calcInput('conv','2')">2</button>
+          <button class="calc-key" onclick="calcInput('conv','3')">3</button>
+          <button class="calc-key op" onclick="calcInput('conv','+')">+</button>
+
+          <button class="calc-key zero" onclick="calcInput('conv','0')">0</button>
+          <button class="calc-key" onclick="calcInput('conv','.')">,</button>
+          <button class="calc-key equals" onclick="calcEquals('conv')">=</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="how-to">
+      <div class="how-to-title">📋 Como usar</div>
+      <div class="how-to-body">
+        Preencha cada item com <strong>Valor pago na contratação</strong>, as datas de início e vencimento, e a <strong>data de alteração</strong> (quando o cliente pediu a conversão). O saldo restante é calculado automaticamente. Depois, informe o valor do novo plano e a data de início da conversão para obter a <strong>nova data de vencimento</strong>.
+        <br><br>💡 <strong>Dica:</strong> você pode <strong>colar datas</strong> copiadas de qualquer lugar (DD/MM/AAAA, AAAA-MM-DD, "15 de junho de 2026", etc.) diretamente nos campos de data.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--  TAB 2: VALOR PROPORCIONAL            -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tab-prop" class="tab-panel">
+
+    <!-- RESULT STRIP -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="result-strip">
+        <div class="result-cell highlight">
+          <span class="result-label">Saldo Total Proporcional</span>
+          <span class="result-value green" id="p-saldo-total">R$ 0,00</span>
+        </div>
+        <div class="result-cell">
+          <span class="result-label">Itens calculados</span>
+          <span class="result-value" id="p-itens-count">0</span>
+        </div>
+        <div class="result-cell">
+          <span class="result-label">Total de dias</span>
+          <span class="result-value" id="p-total-dias">0</span>
+        </div>
+        <div class="result-cell" style="display:flex;align-items:center;">
+          <button id="prop-save-btn" class="btn btn-primary" onclick="saveToHistory('prop')" disabled>💾 Salvar no histórico</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA PROPORCIONAL -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Itens do cálculo proporcional</span>
+        <button class="btn btn-ghost" onclick="addPropRow()">+ Adicionar item</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="prop-table">
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th style="width:70px" class="num">Qtd.</th>
+              <th>Descrição</th>
+              <th class="num">Valor de referência</th>
+              <th class="num">Início</th>
+              <th class="num">Fim</th>
+              <th class="num">Dias</th>
+              <th class="num">Valor/dia</th>
+              <th class="num">Valor total</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="prop-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="calc-mini-wrap">
+      <div class="card calc-mini">
+        <div class="card-header">
+          <span class="card-title">🧮 Calculadora rápida</span>
+          <span class="calc-mini-hint">⌨️ teclado habilitado</span>
+        </div>
+        <div class="calc-display-row">
+          <div class="calc-expr" id="calc-expr-prop">&nbsp;</div>
+          <input class="calc-display" id="calc-display-prop" inputmode="decimal" title="Clique aqui e digite no teclado do computador" readonly value="0" onkeydown="calcKeyDown(event,'prop')">
+        </div>
+        <div class="calc-grid">
+          <button class="calc-key clear" onclick="calcClear('prop')">C</button>
+          <button class="calc-key clear" onclick="calcBackspace('prop')">⌫</button>
+          <button class="calc-key op" onclick="calcInput('prop','%')">%</button>
+          <button class="calc-key op" onclick="calcInput('prop','/')">÷</button>
+
+          <button class="calc-key" onclick="calcInput('prop','7')">7</button>
+          <button class="calc-key" onclick="calcInput('prop','8')">8</button>
+          <button class="calc-key" onclick="calcInput('prop','9')">9</button>
+          <button class="calc-key op" onclick="calcInput('prop','*')">×</button>
+
+          <button class="calc-key" onclick="calcInput('prop','4')">4</button>
+          <button class="calc-key" onclick="calcInput('prop','5')">5</button>
+          <button class="calc-key" onclick="calcInput('prop','6')">6</button>
+          <button class="calc-key op" onclick="calcInput('prop','-')">−</button>
+
+          <button class="calc-key" onclick="calcInput('prop','1')">1</button>
+          <button class="calc-key" onclick="calcInput('prop','2')">2</button>
+          <button class="calc-key" onclick="calcInput('prop','3')">3</button>
+          <button class="calc-key op" onclick="calcInput('prop','+')">+</button>
+
+          <button class="calc-key zero" onclick="calcInput('prop','0')">0</button>
+          <button class="calc-key" onclick="calcInput('prop','.')">,</button>
+          <button class="calc-key equals" onclick="calcEquals('prop')">=</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="how-to">
+      <div class="how-to-title">📋 Como usar</div>
+      <div class="how-to-body">
+        Informe a <strong>quantidade</strong>, a <strong>descrição</strong>, o <strong>valor de referência mensal</strong> e o período (início ao fim). O valor/dia é calculado dividindo o valor de referência por 30, e o valor total é proporcional aos dias do período × quantidade.
+        <br><br>💡 <strong>Dica:</strong> você pode <strong>colar datas</strong> copiadas de qualquer lugar diretamente nos campos de data.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--  TAB 3: DUAS FORMAS DE PAGAMENTO       -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tab-duas" class="tab-panel">
+
+    <!-- RESULT STRIP -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="result-strip">
+        <div class="result-cell highlight">
+          <span class="result-label">Casos calculados</span>
+          <span class="result-value green" id="d-casos-count">0</span>
+        </div>
+        <div class="result-cell">
+          <span class="result-label">Total Pagamento 1</span>
+          <span class="result-value" id="d-total-pag1">R$ 0,00</span>
+        </div>
+        <div class="result-cell">
+          <span class="result-label">Total Pagamento 2</span>
+          <span class="result-value" id="d-total-pag2">R$ 0,00</span>
+        </div>
+        <div class="result-cell" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <span class="result-label">Casos com diferença</span><br>
+            <span class="result-value amber" id="d-casos-diff">0</span>
+          </div>
+          <button id="duas-save-btn" class="btn btn-primary" onclick="saveToHistory('duas')" disabled>💾 Salvar no histórico</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Casos de pagamento em duas formas</span>
+        <button class="btn btn-ghost" onclick="addDuasRow()">+ Adicionar caso</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="duas-table">
+          <thead>
+            <tr>
+              <th style="width:36px"></th>
+              <th>Cliente / Descrição</th>
+              <th class="num">Valor mensal</th>
+              <th class="num">Total ao ano</th>
+              <th class="num">% Desconto</th>
+              <th class="num">
+                Valor c/ desconto a pagar
+                <span class="info-chip">ⓘ
+                  <span class="tooltip">Valor total negociado (já com desconto) que será dividido entre os dois pagamentos. Pode ser digitado direto ou calculado a partir do % de desconto.</span>
+                </span>
+              </th>
+              <th class="num">
+                Pagamento 1
+                <span class="info-chip">ⓘ<span class="tooltip">Valor do 1º pagamento (ex: cartão 1, cupom 1, dinheiro). Apenas digite o número.</span></span>
+              </th>
+              <th class="num">
+                Pagamento 2
+                <span class="info-chip">ⓘ<span class="tooltip">Valor do 2º pagamento. É sugerido automaticamente como o restante (valor c/ desconto − pagamento 1), mas pode ser editado manualmente.</span></span>
+              </th>
+              <th class="num">% Pag. 1 / restante</th>
+              <th class="num">% Pag. 2 / restante</th>
+              <th class="num">Saldo rest. Pag. 1</th>
+              <th class="num">Saldo rest. Pag. 2</th>
+              <th>Confere?</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="duas-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="calc-mini-wrap">
+      <div class="card calc-mini">
+        <div class="card-header">
+          <span class="card-title">🧮 Calculadora rápida</span>
+          <span class="calc-mini-hint">⌨️ teclado habilitado</span>
+        </div>
+        <div class="calc-display-row">
+          <div class="calc-expr" id="calc-expr-duas">&nbsp;</div>
+          <input class="calc-display" id="calc-display-duas" inputmode="decimal" title="Clique aqui e digite no teclado do computador" readonly value="0" onkeydown="calcKeyDown(event,'duas')">
+        </div>
+        <div class="calc-grid">
+          <button class="calc-key clear" onclick="calcClear('duas')">C</button>
+          <button class="calc-key clear" onclick="calcBackspace('duas')">⌫</button>
+          <button class="calc-key op" onclick="calcInput('duas','%')">%</button>
+          <button class="calc-key op" onclick="calcInput('duas','/')">÷</button>
+
+          <button class="calc-key" onclick="calcInput('duas','7')">7</button>
+          <button class="calc-key" onclick="calcInput('duas','8')">8</button>
+          <button class="calc-key" onclick="calcInput('duas','9')">9</button>
+          <button class="calc-key op" onclick="calcInput('duas','*')">×</button>
+
+          <button class="calc-key" onclick="calcInput('duas','4')">4</button>
+          <button class="calc-key" onclick="calcInput('duas','5')">5</button>
+          <button class="calc-key" onclick="calcInput('duas','6')">6</button>
+          <button class="calc-key op" onclick="calcInput('duas','-')">−</button>
+
+          <button class="calc-key" onclick="calcInput('duas','1')">1</button>
+          <button class="calc-key" onclick="calcInput('duas','2')">2</button>
+          <button class="calc-key" onclick="calcInput('duas','3')">3</button>
+          <button class="calc-key op" onclick="calcInput('duas','+')">+</button>
+
+          <button class="calc-key zero" onclick="calcInput('duas','0')">0</button>
+          <button class="calc-key" onclick="calcInput('duas','.')">,</button>
+          <button class="calc-key equals" onclick="calcEquals('duas')">=</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="how-to">
+      <div class="how-to-title">📋 Como usar</div>
+      <div class="how-to-body">
+        Informe o <strong>valor mensal</strong> (o total ao ano é calculado automaticamente ×12). Se o cliente tiver desconto, informe o <strong>% de desconto</strong> — o <strong>valor com desconto a pagar</strong> é calculado sozinho, mas também pode ser digitado direto. Em seguida informe o <strong>Pagamento 1</strong> (ex: 1º cartão); o <strong>Pagamento 2</strong> é sugerido automaticamente como o restante, mas pode ser ajustado.
+        <br><br>Para cada pagamento, a calculadora mostra o <strong>% que ele representa sobre o total anual</strong> (e o seu complemento) e o <strong>saldo restante</strong> caso aquele valor fosse cobrado isoladamente sobre o total anual — útil para casos de cupons ou formas de pagamento avulsas.
+        <br><br>💡 <strong>Confere?</strong> mostra se Pagamento 1 + Pagamento 2 fecham exatamente com o valor com desconto a pagar.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ -->
+  <!--  TAB 4: HISTÓRICO                     -->
+  <!-- ══════════════════════════════════════ -->
+  <div id="tab-hist" class="tab-panel">
+    <div class="history-topbar">
+      <div class="history-count" id="hist-summary">Nenhum cálculo salvo ainda.</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="hist-sync-status" style="font-size:11px;color:var(--gc-blue-mid);">⏳ Conectando...</span>
+        <button class="btn btn-ghost" onclick="clearHistory()" id="hist-clear-btn" style="display:none;color:var(--gc-red);border-color:var(--gc-red-light);">🗑 Limpar tudo</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12px;">
+      <span>👤 Salvando como:</span>
+      <input type="text" id="hist-author-name" placeholder="Seu nome" style="border:1px solid var(--gc-blue-mid);border-radius:6px;padding:4px 8px;font-size:12px;width:160px;" onchange="setAuthorName(this.value)">
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+</div><!-- /main -->
+
+<div id="copy-toast">✓ Salvo no histórico!</div>
+
+<!-- ═══════════════════════════════════════
+     FIREBASE / FIRESTORE — histórico online compartilhado
+     Substitua o objeto firebaseConfig abaixo pelas chaves
+     do SEU projeto Firebase (Configurações do projeto → Seus apps → Web).
+═══════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, deleteDoc, doc,
+    onSnapshot, query, orderBy, limit, getDocs, writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBaRqy8bNMl7oeIn6zY_0yyJy3ffdpJTz4",
+    authDomain: "gestaoclick-cml.firebaseapp.com",
+    projectId: "gestaoclick-cml",
+    storageBucket: "gestaoclick-cml.firebasestorage.app",
+    messagingSenderId: "227093120123",
+    appId: "1:227093120123:web:ccbb35b3714cb180fe0ede"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  const histCol = collection(db, "historico_calculadora");
+
+  window.gcFirebase = {
+    async addEntry(entry) {
+      await addDoc(histCol, entry);
+    },
+    async deleteEntry(docId) {
+      await deleteDoc(doc(db, "historico_calculadora", docId));
+    },
+    async clearAll() {
+      const snap = await getDocs(histCol);
+      const batch = writeBatch(db);
+      snap.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    },
+    subscribe(callback) {
+      const q = query(histCol, orderBy("savedAtMillis", "desc"), limit(50));
+      return onSnapshot(q, snap => {
+        const entries = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        callback(entries);
+      }, err => {
+        console.error("Firestore sync error:", err);
+        window.dispatchEvent(new CustomEvent('gcFirebaseError', { detail: err }));
+      });
+    }
+  };
+
+  window.dispatchEvent(new Event('gcFirebaseReady'));
+</script>
+
+<script>
+/* ─────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────── */
+const fmt  = v => v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const fmtN = v => v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+function daysBetween(d1, d2) {
+  if (!d1 || !d2) return 0;
+  const a = new Date(d1 + 'T00:00:00');
+  const b = new Date(d2 + 'T00:00:00');
+  const diff = Math.round((b - a) / 86400000);
+  return diff > 0 ? diff : 0;
+}
+
+function addDays(dateStr, days) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString('pt-BR');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('copy-toast');
+  t.textContent = msg || '✓ Salvo!';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ─────────────────────────────────────────
+   SMART DATE PASTE
+───────────────────────────────────────── */
+const PT_MONTHS = {
+  jan:1, fev:2, mar:3, abr:4, mai:5, jun:6,
+  jul:7, ago:8, set:9, out:10, nov:11, dez:12,
+  janeiro:1, fevereiro:2, 'março':3, marco:3, abril:4, maio:5,
+  junho:6, julho:7, agosto:8, setembro:9, outubro:10, novembro:11, dezembro:12,
+  january:1, february:2, march:3, april:4, may:5, june:6,
+  july:7, august:8, september:9, october:10, november:11, december:12
+};
+
+function parseFlexibleDate(str) {
+  str = str.trim();
+
+  // YYYY-MM-DD (already correct format)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+  // DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+  const dmy = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if (dmy) {
+    const [, d, m, y] = dmy;
+    if (parseInt(m) <= 12) return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+
+  // DD/MM/YY
+  const dmyShort = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2})$/);
+  if (dmyShort) {
+    const [, d, m, yy] = dmyShort;
+    const year = parseInt(yy) < 50 ? '20' + yy : '19' + yy;
+    if (parseInt(m) <= 12) return `${year}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+
+  // "15 de janeiro de 2026" or "15 janeiro 2026"
+  const ptLong = str.toLowerCase().match(/(\d{1,2})\s+(?:de\s+)?(\w+)\s+(?:de\s+)?(\d{4})/);
+  if (ptLong) {
+    const [, d, monStr, y] = ptLong;
+    const m = PT_MONTHS[monStr];
+    if (m) return `${y}-${String(m).padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+
+  // "janeiro 15, 2026" or "Jan 15 2026"
+  const enLong = str.toLowerCase().match(/(\w+)\s+(\d{1,2})[,\s]+(\d{4})/);
+  if (enLong) {
+    const [, monStr, d, y] = enLong;
+    const m = PT_MONTHS[monStr];
+    if (m) return `${y}-${String(m).padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+
+  // Try native Date.parse as last resort
+  // Only use if the parsed date is reasonable (1970–2099)
+  try {
+    const d = new Date(str);
+    const yr = d.getFullYear();
+    if (!isNaN(d.getTime()) && yr >= 1970 && yr <= 2099) {
+      return d.toISOString().split('T')[0];
+    }
+  } catch(e) { /* ignore */ }
+
+  return null;
+}
+
+// Global paste interceptor for all date inputs
+document.addEventListener('paste', function(e) {
+  const el = e.target;
+  if (!el || el.type !== 'date') return;
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  if (!text) return;
+  const parsed = parseFlexibleDate(text);
+  if (parsed) {
+    e.preventDefault();
+    el.value = parsed;
+    el.dispatchEvent(new Event('input', {bubbles: true}));
+    // Brief visual feedback
+    el.style.borderColor = 'var(--gc-blue)';
+    setTimeout(() => (el.style.borderColor = ''), 800);
+  }
+  // If parsing fails, let the browser handle it natively
+}, false);
+
+/* ─────────────────────────────────────────
+   TABS
+───────────────────────────────────────── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'hist') renderHistory();
+}
+
+/* ─────────────────────────────────────────
+   CONVERSÃO — state
+───────────────────────────────────────── */
+let convRows = [];
+let convIdSeq = 0;
+
+function addConvRow(data = {}) {
+  const id = ++convIdSeq;
+  convRows.push({id, ...data});
+  renderConvTable();
+  recalcConv();
+}
+
+function removeConvRow(id) {
+  convRows = convRows.filter(r => r.id !== id);
+  renderConvTable();
+  recalcConv();
+}
+
+function renderConvTable() {
+  const tbody = document.getElementById('conv-tbody');
+  tbody.innerHTML = '';
+  convRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="row-num">${i+1}</span></td>
+      <td><input class="field" style="min-width:120px" placeholder="Ex: Shopee" value="${row.desc||''}"
+          oninput="setConvField(${row.id},'desc',this.value)"></td>
+      <td class="num"><input class="field" style="width:110px;text-align:right" type="number" step="0.01" placeholder="0,00" value="${row.valor||''}"
+          oninput="setConvField(${row.id},'valor',this.value); recalcConv()"></td>
+      <td class="num"><input class="field date-field" type="date" value="${row.pagoEm||''}"
+          oninput="setConvField(${row.id},'pagoEm',this.value); recalcConv()"></td>
+      <td class="num"><input class="field date-field" type="date" value="${row.venc||''}"
+          oninput="setConvField(${row.id},'venc',this.value); recalcConv()"></td>
+      <td class="num"><input class="field date-field" type="date" value="${row.alt||''}"
+          oninput="setConvField(${row.id},'alt',this.value); recalcConv()"></td>
+      <td class="calc" id="cv-dc-${row.id}">—</td>
+      <td class="calc" id="cv-du-${row.id}">—</td>
+      <td class="calc" id="cv-vd-${row.id}">—</td>
+      <td class="calc" id="cv-vu-${row.id}">—</td>
+      <td class="saldo-cell" id="cv-sa-${row.id}">—</td>
+      <td><button class="btn btn-danger" onclick="removeConvRow(${row.id})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function setConvField(id, field, value) {
+  const row = convRows.find(r => r.id === id);
+  if (row) row[field] = value;
+}
+
+function recalcConv() {
+  let saldoTotal = 0;
+
+  convRows.forEach(row => {
+    const valor     = parseFloat(row.valor) || 0;
+    const diasContr = daysBetween(row.pagoEm, row.venc);
+    const diasUsados= daysBetween(row.pagoEm, row.alt);
+    const valorDia  = diasContr > 0 ? valor / diasContr : 0;
+    const valorUsado= valorDia * diasUsados;
+    const saldo     = valor - valorUsado;
+
+    saldoTotal += saldo;
+
+    const setCell = (sfx, val) => {
+      const el = document.getElementById(`cv-${sfx}-${row.id}`);
+      if (el) el.textContent = val;
+    };
+
+    setCell('dc', diasContr > 0 ? diasContr : '—');
+    setCell('du', diasContr > 0 ? diasUsados : '—');
+    setCell('vd', diasContr > 0 ? 'R$ ' + fmtN(valorDia) : '—');
+    setCell('vu', diasContr > 0 ? fmt(valorUsado) : '—');
+    setCell('sa', diasContr > 0 ? fmt(saldo) : '—');
+  });
+
+  const novoPlano  = parseFloat(document.getElementById('novo-plano-valor').value) || 0;
+  const convValida = document.getElementById('conv-valida').value;
+  const valorDiaNovo = novoPlano > 0 ? novoPlano / 30 : 0;
+  const diasCredito  = valorDiaNovo > 0 ? Math.floor(saldoTotal / valorDiaNovo) : 0;
+  const novaData     = convValida ? addDays(convValida, diasCredito) : null;
+
+  document.getElementById('r-saldo-total').textContent     = fmt(saldoTotal);
+  document.getElementById('r-valor-dia-novo').textContent  = valorDiaNovo > 0 ? 'R$ ' + fmtN(valorDiaNovo) : '—';
+  document.getElementById('r-dias-credito').textContent    = valorDiaNovo > 0 ? diasCredito : '—';
+  document.getElementById('r-nova-data').textContent       = novaData || '—';
+
+  const sit = document.getElementById('conv-situacao');
+  const ready = saldoTotal > 0 && novaData;
+  if (ready) {
+    sit.textContent = `✓ Vence em ${novaData}`;
+    sit.className = 'badge badge-green';
+  } else if (saldoTotal > 0 && novoPlano <= 0) {
+    sit.textContent = 'Informe o valor do novo plano';
+    sit.className = 'badge badge-amber';
+  } else if (saldoTotal > 0 && !convValida) {
+    sit.textContent = 'Informe a data de início da conversão';
+    sit.className = 'badge badge-amber';
+  } else {
+    sit.textContent = 'Preencha os campos acima';
+    sit.className = 'badge badge-amber';
+  }
+
+  // Enable save button only when there's a real result
+  document.getElementById('conv-save-btn').disabled = !ready;
+}
+
+/* ─────────────────────────────────────────
+   PROPORCIONAL — state
+───────────────────────────────────────── */
+let propRows = [];
+let propIdSeq = 0;
+
+function addPropRow(data = {}) {
+  const id = ++propIdSeq;
+  propRows.push({id, ...data});
+  renderPropTable();
+  recalcProp();
+}
+
+function removePropRow(id) {
+  propRows = propRows.filter(r => r.id !== id);
+  renderPropTable();
+  recalcProp();
+}
+
+function renderPropTable() {
+  const tbody = document.getElementById('prop-tbody');
+  tbody.innerHTML = '';
+  propRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="row-num">${i+1}</span></td>
+      <td class="num"><input class="field" style="width:60px;text-align:center" type="number" min="1" value="${row.qtd||1}"
+          oninput="setPropField(${row.id},'qtd',this.value); recalcProp()"></td>
+      <td><input class="field" style="min-width:120px" placeholder="Ex: Prata Mensal" value="${row.desc||''}"
+          oninput="setPropField(${row.id},'desc',this.value)"></td>
+      <td class="num"><input class="field" style="width:130px;text-align:right" type="number" step="0.01" placeholder="0,00" value="${row.valorRef||''}"
+          oninput="setPropField(${row.id},'valorRef',this.value); recalcProp()"></td>
+      <td class="num"><input class="field date-field" type="date" value="${row.inicio||''}"
+          oninput="setPropField(${row.id},'inicio',this.value); recalcProp()"></td>
+      <td class="num"><input class="field date-field" type="date" value="${row.fim||''}"
+          oninput="setPropField(${row.id},'fim',this.value); recalcProp()"></td>
+      <td class="calc" id="pp-dias-${row.id}">—</td>
+      <td class="calc" id="pp-vd-${row.id}">—</td>
+      <td class="total-cell" id="pp-tot-${row.id}">—</td>
+      <td><button class="btn btn-danger" onclick="removePropRow(${row.id})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function setPropField(id, field, value) {
+  const row = propRows.find(r => r.id === id);
+  if (row) row[field] = value;
+}
+
+let lastPropResults = {saldoTotal:0, itensCount:0, totalDias:0};
+
+function recalcProp() {
+  let saldoTotal = 0;
+  let totalDias  = 0;
+  let itensCount = 0;
+
+  propRows.forEach(row => {
+    const qtd      = parseFloat(row.qtd) || 1;
+    const valorRef = parseFloat(row.valorRef) || 0;
+    const dias     = daysBetween(row.inicio, row.fim);
+    const valorDia = valorRef / 30;
+    const total    = valorDia * dias * qtd;
+
+    if (valorRef > 0) {
+      saldoTotal += total;
+      totalDias  += dias;
+      itensCount++;
+    }
+
+    const setP = (sfx, val) => {
+      const el = document.getElementById(`pp-${sfx}-${row.id}`);
+      if (el) el.textContent = val;
+    };
+
+    setP('dias', valorRef > 0 ? dias : '—');
+    setP('vd', valorRef > 0 ? 'R$ ' + fmtN(valorDia) : '—');
+    setP('tot', valorRef > 0 ? fmt(total) : '—');
+  });
+
+  document.getElementById('p-saldo-total').textContent  = fmt(saldoTotal);
+  document.getElementById('p-itens-count').textContent  = itensCount;
+  document.getElementById('p-total-dias').textContent   = totalDias;
+
+  lastPropResults = {saldoTotal, itensCount, totalDias};
+  document.getElementById('prop-save-btn').disabled = saldoTotal <= 0;
+}
+
+/* ─────────────────────────────────────────
+   DUAS FORMAS DE PAGAMENTO — state
+───────────────────────────────────────── */
+let duasRows = [];
+let duasIdSeq = 0;
+
+function addDuasRow(data = {}) {
+  const id = ++duasIdSeq;
+  duasRows.push({id, ...data});
+  renderDuasTable();
+  recalcDuas();
+}
+
+function removeDuasRow(id) {
+  duasRows = duasRows.filter(r => r.id !== id);
+  renderDuasTable();
+  recalcDuas();
+}
+
+function renderDuasTable() {
+  const tbody = document.getElementById('duas-tbody');
+  tbody.innerHTML = '';
+  duasRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="row-num">${i+1}</span></td>
+      <td><input class="field" style="min-width:130px" placeholder="Ex: Cliente XPTO" value="${row.desc||''}"
+          oninput="setDuasField(${row.id},'desc',this.value)"></td>
+      <td class="num"><input class="field" style="width:110px;text-align:right" type="number" step="0.01" placeholder="0,00" value="${row.mensal||''}"
+          oninput="setDuasField(${row.id},'mensal',this.value); recalcDuas()"></td>
+      <td class="calc" id="du-totalAno-${row.id}">—</td>
+      <td class="num"><input class="field" style="width:80px;text-align:right" type="number" step="0.01" placeholder="0" value="${row.percDesc||''}"
+          oninput="setDuasField(${row.id},'percDesc',this.value); recalcDuas()"></td>
+      <td class="num"><input class="field" id="du-valorDesc-${row.id}" style="width:120px;text-align:right" type="number" step="0.01" placeholder="0,00" value="${row.valorDesc||''}"
+          oninput="setDuasField(${row.id},'valorDesc',this.value); duasRows.find(r=>r.id===${row.id}).valorDescTouched=true; recalcDuas()"></td>
+      <td class="num"><input class="field" style="width:110px;text-align:right" type="number" step="0.01" placeholder="0,00" value="${row.pag1||''}"
+          oninput="setDuasField(${row.id},'pag1',this.value); recalcDuas()"></td>
+      <td class="num"><input class="field" id="du-pag2-${row.id}" style="width:110px;text-align:right" type="number" step="0.01" placeholder="0,00" value="${row.pag2||''}"
+          oninput="setDuasField(${row.id},'pag2',this.value); duasRows.find(r=>r.id===${row.id}).pag2Touched=true; recalcDuas()"></td>
+      <td class="calc" id="du-pct1-${row.id}">—</td>
+      <td class="calc" id="du-pct2-${row.id}">—</td>
+      <td class="total-cell" id="du-rest1-${row.id}">—</td>
+      <td class="total-cell" id="du-rest2-${row.id}">—</td>
+      <td id="du-status-${row.id}"><span class="status-pill status-na">—</span></td>
+      <td><button class="btn btn-danger" onclick="removeDuasRow(${row.id})">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function setDuasField(id, field, value) {
+  const row = duasRows.find(r => r.id === id);
+  if (row) row[field] = value;
+}
+
+function recalcDuas() {
+  let totalPag1 = 0, totalPag2 = 0, casosCount = 0, casosDiff = 0;
+
+  duasRows.forEach(row => {
+    const mensal    = parseFloat(row.mensal) || 0;
+    const totalAno  = mensal * 12;
+    const percDesc  = parseFloat(row.percDesc) || 0;
+
+    // Valor com desconto a pagar: auto a partir do % (se o campo não foi editado manualmente)
+    if (percDesc > 0 && !row.valorDescTouched) {
+      row.valorDesc = (totalAno * (1 - percDesc / 100)).toFixed(2);
+      const elVD = document.getElementById(`du-valorDesc-${row.id}`);
+      if (elVD && document.activeElement !== elVD) elVD.value = row.valorDesc;
+    }
+    const valorDesc = parseFloat(row.valorDesc) || 0;
+
+    const pag1 = parseFloat(row.pag1) || 0;
+
+    // Pagamento 2: sugerido automaticamente como o restante (se não editado manualmente)
+    if (valorDesc > 0 && !row.pag2Touched) {
+      row.pag2 = (valorDesc - pag1).toFixed(2);
+      const elP2 = document.getElementById(`du-pag2-${row.id}`);
+      if (elP2 && document.activeElement !== elP2) elP2.value = row.pag2;
+    }
+    const pag2 = parseFloat(row.pag2) || 0;
+
+    const percPag1 = totalAno > 0 ? (pag1 * 100) / totalAno : 0;
+    const percPag2 = totalAno > 0 ? (pag2 * 100) / totalAno : 0;
+    const rest1    = totalAno - pag1;
+    const rest2    = totalAno - pag2;
+    const soma     = pag1 + pag2;
+    const diff     = soma - valorDesc;
+
+    if (mensal > 0) {
+      casosCount++;
+      totalPag1 += pag1;
+      totalPag2 += pag2;
+    }
+
+    const setCell = (sfx, html) => {
+      const el = document.getElementById(`du-${sfx}-${row.id}`);
+      if (el) el.innerHTML = html;
+    };
+
+    setCell('totalAno', mensal > 0 ? fmt(totalAno) : '—');
+    setCell('pct1', totalAno > 0 ? `${fmtN(percPag1)}%<br><span class="calc-sub">rest. ${fmtN(100-percPag1)}%</span>` : '—');
+    setCell('pct2', totalAno > 0 ? `${fmtN(percPag2)}%<br><span class="calc-sub">rest. ${fmtN(100-percPag2)}%</span>` : '—');
+    setCell('rest1', totalAno > 0 ? fmt(rest1) : '—');
+    setCell('rest2', totalAno > 0 ? fmt(rest2) : '—');
+
+    const statusEl = document.getElementById(`du-status-${row.id}`);
+    if (statusEl) {
+      if (valorDesc > 0) {
+        if (Math.abs(diff) < 0.01) {
+          statusEl.innerHTML = `<span class="status-pill status-ok">✓ Confere</span>`;
+        } else {
+          statusEl.innerHTML = `<span class="status-pill status-warn">⚠ ${diff > 0 ? '+' : ''}${fmt(diff)}</span>`;
+          if (mensal > 0) casosDiff++;
+        }
+      } else {
+        statusEl.innerHTML = `<span class="status-pill status-na">—</span>`;
+      }
+    }
+  });
+
+  document.getElementById('d-casos-count').textContent = casosCount;
+  document.getElementById('d-total-pag1').textContent  = fmt(totalPag1);
+  document.getElementById('d-total-pag2').textContent  = fmt(totalPag2);
+  document.getElementById('d-casos-diff').textContent  = casosDiff;
+
+  document.getElementById('duas-save-btn').disabled = casosCount === 0;
+}
+
+
+/* ─────────────────────────────────────────
+   HISTÓRICO — Firestore (compartilhado em tempo real)
+───────────────────────────────────────── */
+let histEntries = [];        // cache local, alimentado pelo onSnapshot
+let histReady   = false;
+let histUnsub   = null;
+
+function getAuthorName() {
+  return localStorage.getItem('gc_user_name') || '';
+}
+
+function setAuthorName(name) {
+  name = (name || '').trim();
+  localStorage.setItem('gc_user_name', name);
+}
+
+function ensureAuthorName() {
+  let name = getAuthorName();
+  if (!name) {
+    name = prompt('Como podemos te identificar no histórico? (seu nome)') || '';
+    setAuthorName(name);
+  }
+  return name;
+}
+
+function initHistorySync() {
+  const nameInput = document.getElementById('hist-author-name');
+  if (nameInput) nameInput.value = getAuthorName();
+
+  const start = () => {
+    histReady = true;
+    setHistSyncStatus('🟢 Online', 'var(--gc-blue)');
+    if (histUnsub) histUnsub();
+    histUnsub = window.gcFirebase.subscribe(entries => {
+      histEntries = entries;
+      updateHistBadge();
+      const histTab = document.getElementById('tab-hist');
+      if (histTab && histTab.classList.contains('active')) renderHistory();
+    });
+  };
+
+  if (window.gcFirebase) start();
+  else window.addEventListener('gcFirebaseReady', start, { once: true });
+
+  window.addEventListener('gcFirebaseError', () => {
+    setHistSyncStatus('🔴 Sem conexão com o histórico online', 'var(--gc-red)');
+  });
+}
+
+function setHistSyncStatus(text, color) {
+  const el = document.getElementById('hist-sync-status');
+  if (el) { el.textContent = text; el.style.color = color; }
+}
+
+function updateHistBadge() {
+  const n = histEntries.length;
+  const badge = document.getElementById('hist-count-badge');
+  if (n > 0) {
+    badge.textContent = n;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function autoLabel(type) {
+  if (type === 'conv') {
+    const descs = convRows.map(r => r.desc).filter(Boolean);
+    return descs.length ? descs.join(' + ') : 'Conversão sem descrição';
+  } else if (type === 'duas') {
+    const descs = duasRows.map(r => r.desc).filter(Boolean);
+    return descs.length ? descs.join(' + ') : 'Duas formas sem descrição';
+  } else {
+    const descs = propRows.map(r => r.desc).filter(Boolean);
+    return descs.length ? descs.join(' + ') : 'Proporcional sem descrição';
+  }
+}
+
+async function saveToHistory(type) {
+  if (!histReady || !window.gcFirebase) {
+    showToast('⚠ Sem conexão com o histórico online. Tente novamente em alguns segundos.');
+    return;
+  }
+
+  const authorName = ensureAuthorName();
+  const now = new Date();
+  const entry = {
+    type,
+    authorName,
+    savedAt: now.toISOString(),
+    savedAtMillis: now.getTime(),
+    label: autoLabel(type),
+  };
+
+  if (type === 'conv') {
+    const novoPlano  = parseFloat(document.getElementById('novo-plano-valor').value) || 0;
+    const convValida = document.getElementById('conv-valida').value;
+    const diasCredito= document.getElementById('r-dias-credito').textContent;
+    const novaData   = document.getElementById('r-nova-data').textContent;
+    entry.rows     = JSON.parse(JSON.stringify(convRows));
+    entry.novoPlano = novoPlano;
+    entry.convValida= convValida;
+    entry.results  = {
+      saldoTotal: document.getElementById('r-saldo-total').textContent,
+      valorDiaNovo: document.getElementById('r-valor-dia-novo').textContent,
+      diasCredito,
+      novaData,
+    };
+  } else if (type === 'duas') {
+    entry.rows    = JSON.parse(JSON.stringify(duasRows));
+    entry.results = {
+      casosCount: document.getElementById('d-casos-count').textContent,
+      totalPag1: document.getElementById('d-total-pag1').textContent,
+      totalPag2: document.getElementById('d-total-pag2').textContent,
+      casosDiff: document.getElementById('d-casos-diff').textContent,
+    };
+  } else {
+    entry.rows    = JSON.parse(JSON.stringify(propRows));
+    entry.results = {
+      saldoTotal: document.getElementById('p-saldo-total').textContent,
+      itensCount: document.getElementById('p-itens-count').textContent,
+      totalDias: document.getElementById('p-total-dias').textContent,
+    };
+  }
+
+  try {
+    await window.gcFirebase.addEntry(entry);
+    showToast('✓ Salvo no histórico online!');
+  } catch (e) {
+    console.error(e);
+    showToast('✗ Erro ao salvar no histórico online.');
+  }
+}
+
+async function deleteHistEntry(id) {
+  try {
+    await window.gcFirebase.deleteEntry(id);
+  } catch (e) {
+    console.error(e);
+    showToast('✗ Erro ao excluir.');
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('Limpar todo o histórico de TODO O TIME? Esta ação não pode ser desfeita.')) return;
+  try {
+    await window.gcFirebase.clearAll();
+  } catch (e) {
+    console.error(e);
+    showToast('✗ Erro ao limpar histórico.');
+  }
+}
+
+function restoreEntry(id) {
+  const entry = histEntries.find(e => e.id === id);
+  if (!entry) return;
+
+  if (entry.type === 'conv') {
+    // Switch to conversion tab
+    switchTab('conv', document.querySelector('.tab-btn'));
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.remove('active');
+      if (i === 0) b.classList.add('active');
+    });
+
+    // Clear and restore rows
+    convRows   = [];
+    convIdSeq  = 0;
+    entry.rows.forEach(r => {
+      const id2 = ++convIdSeq;
+      convRows.push({...r, id: id2});
+    });
+    renderConvTable();
+
+    document.getElementById('novo-plano-valor').value = entry.novoPlano || '';
+    document.getElementById('conv-valida').value      = entry.convValida || '';
+    recalcConv();
+  } else if (entry.type === 'duas') {
+    switchTab('duas', null);
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.remove('active');
+      if (i === 2) b.classList.add('active');
+    });
+    duasRows  = [];
+    duasIdSeq = 0;
+    entry.rows.forEach(r => {
+      const id2 = ++duasIdSeq;
+      duasRows.push({...r, id: id2});
+    });
+    renderDuasTable();
+    recalcDuas();
+  } else {
+    switchTab('prop', null);
+    document.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.remove('active');
+      if (i === 1) b.classList.add('active');
+    });
+    propRows  = [];
+    propIdSeq = 0;
+    entry.rows.forEach(r => {
+      const id2 = ++propIdSeq;
+      propRows.push({...r, id: id2});
+    });
+    renderPropTable();
+    recalcProp();
+  }
+  showToast('↩ Cálculo restaurado!');
+}
+
+function renderHistory() {
+  const entries = histEntries;
+  const list    = document.getElementById('hist-list');
+  const summary = document.getElementById('hist-summary');
+  const clearBtn= document.getElementById('hist-clear-btn');
+
+  updateHistBadge();
+
+  if (!histReady) {
+    summary.textContent = 'Conectando ao histórico online...';
+    clearBtn.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  if (entries.length === 0) {
+    summary.textContent = 'Nenhum cálculo salvo ainda.';
+    clearBtn.style.display = 'none';
+    list.innerHTML = `
+      <div class="card">
+        <div class="history-empty">
+          <div class="history-empty-icon">📂</div>
+          <div class="history-empty-text">Histórico vazio</div>
+          <div class="history-empty-sub">Use o botão "Salvar no histórico" em cada aba para guardar um cálculo.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  summary.textContent = `${entries.length} cálculo${entries.length > 1 ? 's' : ''} salvo${entries.length > 1 ? 's' : ''}`;
+  clearBtn.style.display = 'inline-flex';
+
+  list.innerHTML = '';
+  const ul = document.createElement('div');
+  ul.className = 'history-list';
+
+  entries.forEach(entry => {
+    const d = new Date(entry.savedAt);
+    const dateStr = d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
+    const timeStr = d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+
+    const typeLabel = entry.type === 'conv' ? 'Conversão' : entry.type === 'duas' ? 'Duas Formas' : 'Proporcional';
+    const typeCls   = entry.type === 'conv' ? 'hist-type-conv' : entry.type === 'duas' ? 'hist-type-duas' : 'hist-type-prop';
+
+    let metricsHtml = '';
+    if (entry.type === 'conv' && entry.results) {
+      metricsHtml = `
+        <div class="hist-metric"><div class="hist-metric-label">Saldo total</div><div class="hist-metric-value green">${entry.results.saldoTotal}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Valor/dia (novo)</div><div class="hist-metric-value">${entry.results.valorDiaNovo}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Dias de crédito</div><div class="hist-metric-value">${entry.results.diasCredito}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Nova data venc.</div><div class="hist-metric-value green">${entry.results.novaData}</div></div>
+      `;
+    } else if (entry.type === 'duas' && entry.results) {
+      metricsHtml = `
+        <div class="hist-metric"><div class="hist-metric-label">Casos</div><div class="hist-metric-value">${entry.results.casosCount}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Total Pag. 1</div><div class="hist-metric-value green">${entry.results.totalPag1}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Total Pag. 2</div><div class="hist-metric-value green">${entry.results.totalPag2}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Com diferença</div><div class="hist-metric-value">${entry.results.casosDiff}</div></div>
+      `;
+    } else if (entry.results) {
+      metricsHtml = `
+        <div class="hist-metric"><div class="hist-metric-label">Saldo proporcional</div><div class="hist-metric-value green">${entry.results.saldoTotal}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Itens</div><div class="hist-metric-value">${entry.results.itensCount}</div></div>
+        <div class="hist-metric"><div class="hist-metric-label">Total de dias</div><div class="hist-metric-value">${entry.results.totalDias}</div></div>
+      `;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'hist-card';
+    card.innerHTML = `
+      <div class="hist-card-header">
+        <span class="hist-type-badge ${typeCls}">${typeLabel}</span>
+        <span class="hist-label">${escHtml(entry.label)}</span>
+        ${entry.authorName ? `<span class="hist-author" style="font-size:11px;color:var(--gc-blue);">👤 ${escHtml(entry.authorName)}</span>` : ''}
+        <span class="hist-date">${dateStr} às ${timeStr}</span>
+        <div class="hist-actions">
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="restoreEntry('${entry.id}')">↩ Restaurar</button>
+          <button class="btn btn-danger" onclick="deleteHistEntry('${entry.id}')">✕</button>
+        </div>
+      </div>
+      <div class="hist-card-body">${metricsHtml}</div>
+    `;
+    ul.appendChild(card);
+  });
+
+  list.appendChild(ul);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─────────────────────────────────────────
+   MINI CALCULATOR (basic 4-op calculator)
+───────────────────────────────────────── */
+const calcState = {
+  conv: { expr: '', justEvaluated: false },
+  prop: { expr: '', justEvaluated: false },
+  duas: { expr: '', justEvaluated: false },
+};
+
+function calcRenderOpSymbol(op) {
+  return op.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−');
+}
+
+function calcUpdateDisplay(id) {
+  const st = calcState[id];
+  const displayEl = document.getElementById('calc-display-' + id);
+  const exprEl = document.getElementById('calc-expr-' + id);
+
+  if (!st.expr) {
+    displayEl.value = '0';
+    exprEl.innerHTML = '&nbsp;';
+    return;
+  }
+
+  // Show the expression as the small line, and the last number as the big display
+  const parts = st.expr.split(/([+\-*/%])/).filter(p => p !== '');
+  const last = parts[parts.length - 1];
+  const exprPrefix = parts.slice(0, -1).join('');
+
+  displayEl.value = (last === undefined || /[+\-*/%]/.test(last)) ? '0' : last.replace('.', ',');
+  exprEl.textContent = calcRenderOpSymbol(exprPrefix) || '\u00A0';
+}
+
+function calcInput(id, val) {
+  const st = calcState[id];
+
+  // Prevent two operators in a row (replace the last one)
+  const isOp = /[+\-*/%]/.test(val);
+  const lastChar = st.expr.slice(-1);
+
+  if (st.justEvaluated) {
+    // Starting fresh after "=" — if it's a digit, reset; if it's an operator, continue from result
+    if (!isOp) st.expr = '';
+    st.justEvaluated = false;
+  }
+
+  if (isOp) {
+    if (st.expr === '' && val !== '-') return; // can't start with an operator (except minus)
+    if (/[+\-*/%]/.test(lastChar)) {
+      st.expr = st.expr.slice(0, -1) + val; // replace trailing operator
+    } else {
+      st.expr += val;
+    }
+  } else if (val === '.') {
+    // avoid multiple decimal points in the current number segment
+    const segments = st.expr.split(/[+\-*/%]/);
+    const currentSegment = segments[segments.length - 1];
+    if (currentSegment.includes('.')) return;
+    st.expr += (currentSegment === '' ? '0.' : '.');
+  } else {
+    st.expr += val;
+  }
+
+  calcUpdateDisplay(id);
+}
+
+function calcClear(id) {
+  calcState[id].expr = '';
+  calcState[id].justEvaluated = false;
+  calcUpdateDisplay(id);
+}
+
+function calcBackspace(id) {
+  const st = calcState[id];
+  if (st.justEvaluated) { calcClear(id); return; }
+  st.expr = st.expr.slice(0, -1);
+  calcUpdateDisplay(id);
+}
+
+function calcFlashKey(id, selector) {
+  const grid = document.getElementById('calc-display-' + id)?.closest('.calc-mini')?.querySelector('.calc-grid');
+  if (!grid) return;
+  const btn = grid.querySelector(selector);
+  if (!btn) return;
+  btn.classList.add('kbd-active');
+  setTimeout(() => btn.classList.remove('kbd-active'), 120);
+}
+
+function calcKeyDown(e, id) {
+  const key = e.key;
+
+  if (/^[0-9]$/.test(key)) {
+    e.preventDefault();
+    calcInput(id, key);
+    calcFlashKey(id, `.calc-key:not(.op):not(.clear):not(.equals)[onclick*="'${key}'"]`);
+    return;
+  }
+  if (key === '+' || key === '-' || key === '*' || key === '/' || key === '%') {
+    e.preventDefault();
+    calcInput(id, key);
+    calcFlashKey(id, `.calc-key.op[onclick*="'${key}'"]`);
+    return;
+  }
+  if (key === '.' || key === ',') {
+    e.preventDefault();
+    calcInput(id, '.');
+    return;
+  }
+  if (key === 'Enter' || key === '=') {
+    e.preventDefault();
+    calcEquals(id);
+    calcFlashKey(id, '.calc-key.equals');
+    return;
+  }
+  if (key === 'Backspace') {
+    e.preventDefault();
+    calcBackspace(id);
+    calcFlashKey(id, '.calc-key.clear[onclick*="calcBackspace"]');
+    return;
+  }
+  if (key === 'Escape' || key === 'Delete' || key.toLowerCase() === 'c') {
+    e.preventDefault();
+    calcClear(id);
+    calcFlashKey(id, '.calc-key.clear[onclick*="calcClear"]');
+    return;
+  }
+}
+
+function calcEquals(id) {
+  const st = calcState[id];
+  if (!st.expr) return;
+
+  // Strip a trailing operator before evaluating
+  let expr = st.expr.replace(/[+\-*/%]+$/, '');
+  if (!expr) return;
+
+  // Sanitize: only allow digits, operators, decimal points and parentheses
+  if (!/^[0-9+\-*/%.\s]+$/.test(expr)) {
+    calcClear(id);
+    return;
+  }
+
+  // Convert % to /100 for simple percentage handling (e.g. 50% -> 0.5)
+  const safeExpr = expr.replace(/(\d+(\.\d+)?)%/g, '($1/100)');
+
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict"; return (' + safeExpr + ')')();
+    if (typeof result !== 'number' || !isFinite(result)) throw new Error('invalid result');
+    const rounded = Math.round(result * 1e8) / 1e8; // avoid floating point noise
+    st.expr = String(rounded);
+    st.justEvaluated = true;
+    calcUpdateDisplay(id);
+  } catch (e) {
+    document.getElementById('calc-display-' + id).value = 'Erro';
+    st.expr = '';
+    st.justEvaluated = false;
+  }
+}
+
+/* ─────────────────────────────────────────
+   INIT
+───────────────────────────────────────── */
+addConvRow();
+addPropRow();
+addDuasRow();
+initHistorySync();
+</script>
+</body>
+</html>
